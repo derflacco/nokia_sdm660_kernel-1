@@ -34,25 +34,37 @@ static void anxiety_merged_requests(struct request_queue *q, struct request *rq,
 	rq_fifo_clear(next);
 }
 
-static inline struct request *anxiety_choose_request(struct anxiety_data *adata)
+static __always_inline struct request *anxiety_choose_request(struct anxiety_data *mdata)
 {
-	/* Prioritize reads unless writes are exceedingly starved */
-	bool starved = adata->writes_starved > adata->max_writes_starved;
+	/* prioritize reads unless writes are exceedingly starved */
+	bool starved = (mdata->writes_starved > MAX_WRITES_STARVED);
 
-	/* Handle a read request */
-	if (!starved && !list_empty(&adata->queue[READ])) {
-		adata->writes_starved++;
-		return rq_entry_fifo(adata->queue[READ].next);
+	/* sync read */
+	if (!starved && !list_empty(&mdata->queue[SYNC][READ])) {
+		mdata->writes_starved++;
+		return rq_entry_fifo(mdata->queue[SYNC][READ].next);
 	}
 
-	/* Handle a write request */
-	if (!list_empty(&adata->queue[WRITE])) {
-		adata->writes_starved = 0;
-		return rq_entry_fifo(adata->queue[WRITE].next);
+	/* sync write */
+	if (!list_empty(&mdata->queue[SYNC][WRITE])) {
+		mdata->writes_starved = 0;
+		return rq_entry_fifo(mdata->queue[SYNC][WRITE].next);
 	}
 
-	/* If there are no requests, then there is nothing to starve */
-	adata->writes_starved = 0;
+	/* async read */
+	if (!starved && !list_empty(&mdata->queue[ASYNC][READ])) {
+		mdata->writes_starved++;
+		return rq_entry_fifo(mdata->queue[ASYNC][READ].next);
+	}
+
+	/* async write */
+	if (!list_empty(&mdata->queue[ASYNC][WRITE])) {
+		mdata->writes_starved = 0;
+		return rq_entry_fifo(mdata->queue[ASYNC][WRITE].next);
+	}
+
+	/* all queues are empty, i.e. no pending requests */
+	mdata->writes_starved = 0;
 	return NULL;
 }
 
@@ -71,16 +83,36 @@ static int anxiety_dispatch(struct request_queue *q, int force)
 
 static void anxiety_add_request(struct request_queue *q, struct request *rq)
 {
-	const uint8_t dir = rq_is_sync(rq);
-	struct anxiety_data *adata = q->elevator->elevator_data;
+	const uint8_t sync = rq_is_sync(rq);
+	const uint8_t read = rq_data_dir(rq);
 
-	list_add_tail(&rq->queuelist, &adata->queue[dir]);
+	list_add_tail(&rq->queuelist, &((struct anxiety_data *) q->elevator->elevator_data)->queue[sync][read]);
 }
 
-static int anxiety_init_queue(struct request_queue *q, struct elevator_type *elv)
+static struct request *anxiety_former_request(struct request_queue *q, struct request *rq)
 {
-	struct anxiety_data *adata;
-	struct elevator_queue *eq = elevator_alloc(q, elv);
+	const uint8_t sync = rq_is_sync(rq);
+	const uint8_t read = rq_data_dir(rq);
+
+	if (rq->queuelist.prev == &((struct anxiety_data *) q->elevator->elevator_data)->queue[sync][read])
+		return NULL;
+	return list_prev_entry(rq, queuelist);
+}
+
+static struct request *anxiety_latter_request(struct request_queue *q, struct request *rq)
+{
+	const uint8_t sync = rq_is_sync(rq);
+	const uint8_t read = rq_data_dir(rq);
+
+	if (rq->queuelist.next == &((struct anxiety_data *) q->elevator->elevator_data)->queue[sync][read])
+		return NULL;
+	return list_next_entry(rq, queuelist);
+}
+
+static int anxiety_init_queue(struct request_queue *q, struct elevator_type *e)
+{
+	struct anxiety_data *nd;
+	struct elevator_queue *eq = elevator_alloc(q, e);
 
 	if (!eq)
 		return -ENOMEM;
