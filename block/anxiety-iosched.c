@@ -10,11 +10,15 @@
 #include <linux/slab.h>
 #include <linux/init.h>
 
-#define MAX_WRITES_STARVED 8
+/* default tunable values */
+static const unsigned int max_writes_starved = 8; /* max amount of times reads can starve pending writes */
 
 struct anxiety_data {
 	struct list_head queue[2];
 	unsigned int writes_starved;
+
+	/* tunables */
+	unsigned int max_writes_starved;
 };
 
 static void anxiety_merged_requests(struct request_queue *q, struct request *rq, struct request *next)
@@ -25,7 +29,7 @@ static void anxiety_merged_requests(struct request_queue *q, struct request *rq,
 static __always_inline struct request *anxiety_choose_request(struct anxiety_data *mdata)
 {
 	/* prioritize reads unless writes are exceedingly starved */
-	bool starved = mdata->writes_starved > MAX_WRITES_STARVED;
+	bool starved = mdata->writes_starved > mdata->max_writes_starved;
 
 	/* read */
 	if (!starved && !list_empty(&mdata->queue[READ])) {
@@ -92,6 +96,7 @@ static int anxiety_init_queue(struct request_queue *q, struct elevator_type *elv
 	if (!eq)
 		return -ENOMEM;
 
+	/* allocate data */
 	data = kmalloc_node(sizeof(*data), GFP_KERNEL, q->node);
 	if (!data) {
 		kobject_put(&eq->kobj);
@@ -99,11 +104,13 @@ static int anxiety_init_queue(struct request_queue *q, struct elevator_type *elv
 	}
 	eq->elevator_data = data;
 
+	/* initialize data */
 	INIT_LIST_HEAD(&data->queue[READ]);
 	INIT_LIST_HEAD(&data->queue[WRITE]);
 	data->writes_starved = 0;
+	data->max_writes_starved = max_writes_starved;
 
-	/* Set elevator to Anxiety */
+	/* set the elevator to us */
 	spin_lock_irq(q->queue_lock);
 	q->elevator = eq;
 	spin_unlock_irq(q->queue_lock);
@@ -111,20 +118,20 @@ static int anxiety_init_queue(struct request_queue *q, struct elevator_type *elv
 	return 0;
 }
 
-/* Sysfs access */
+/* sysfs tunables */
 static ssize_t anxiety_max_writes_starved_show(struct elevator_queue *e, char *page)
 {
-	struct anxiety_data *adata = e->elevator_data;
+	struct anxiety_data *ad = e->elevator_data;
 
-	return snprintf(page, PAGE_SIZE, "%u\n", adata->max_writes_starved);
+	return snprintf(page, PAGE_SIZE, "%d\n", ad->max_writes_starved);
 }
 
 static ssize_t anxiety_max_writes_starved_store(struct elevator_queue *e, const char *page, size_t count)
 {
-	struct anxiety_data *adata = e->elevator_data;
+	struct anxiety_data *ad = e->elevator_data;
 	int ret;
 
-	ret = kstrtou8(page, 0, &adata->max_writes_starved);
+	ret = kstrtouint(page, 0, &ad->max_writes_starved);
 	if (ret < 0)
 		return ret;
 
