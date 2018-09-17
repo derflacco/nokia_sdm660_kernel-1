@@ -25,7 +25,7 @@ static void anxiety_merged_requests(struct request_queue *q, struct request *rq,
 static __always_inline struct request *anxiety_choose_request(struct anxiety_data *mdata)
 {
 	/* prioritize reads unless writes are exceedingly starved */
-	bool starved = (mdata->writes_starved > MAX_WRITES_STARVED);
+	bool starved = mdata->writes_starved > MAX_WRITES_STARVED;
 
 	/* read */
 	if (!starved && !list_empty(&mdata->queue[READ])) {
@@ -70,6 +70,7 @@ static struct request *anxiety_former_request(struct request_queue *q, struct re
 
 	if (rq->queuelist.prev == &((struct anxiety_data *) q->elevator->elevator_data)->queue[dir])
 		return NULL;
+
 	return list_prev_entry(rq, queuelist);
 }
 
@@ -79,6 +80,7 @@ static struct request *anxiety_latter_request(struct request_queue *q, struct re
 
 	if (rq->queuelist.next == &((struct anxiety_data *) q->elevator->elevator_data)->queue[dir])
 		return NULL;
+
 	return list_next_entry(rq, queuelist);
 }
 
