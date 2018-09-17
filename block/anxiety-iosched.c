@@ -84,24 +84,24 @@ static struct request *anxiety_latter_request(struct request_queue *q, struct re
 	return list_next_entry(rq, queuelist);
 }
 
-static int anxiety_init_queue(struct request_queue *q, struct elevator_type *e)
+static int anxiety_init_queue(struct request_queue *q, struct elevator_type *elv)
 {
-	struct anxiety_data *nd;
-	struct elevator_queue *eq = elevator_alloc(q, e);
+	struct anxiety_data *data;
+	struct elevator_queue *eq = elevator_alloc(q, elv);
 
 	if (!eq)
 		return -ENOMEM;
 
-	/* Allocate the data */
-	adata = kmalloc_node(sizeof(*adata), GFP_KERNEL, q->node);
-	if (!adata) {
+	data = kmalloc_node(sizeof(*data), GFP_KERNEL, q->node);
+	if (!data) {
 		kobject_put(&eq->kobj);
 		return -ENOMEM;
 	}
+	eq->elevator_data = data;
 
-	INIT_LIST_HEAD(&nd->queue[READ]);
-	INIT_LIST_HEAD(&nd->queue[WRITE]);
-	nd->writes_starved = 0;
+	INIT_LIST_HEAD(&data->queue[READ]);
+	INIT_LIST_HEAD(&data->queue[WRITE]);
+	data->writes_starved = 0;
 
 	/* Set elevator to Anxiety */
 	spin_lock_irq(q->queue_lock);
