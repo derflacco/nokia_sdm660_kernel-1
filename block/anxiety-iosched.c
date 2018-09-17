@@ -10,15 +10,11 @@
 #include <linux/slab.h>
 #include <linux/init.h>
 
-/* Max times reads can starve a write */
-#define	DEFAULT_MAX_WRITES_STARVED	(4)
+#define MAX_WRITES_STARVED 12
 
 struct anxiety_data {
 	struct list_head queue[2];
-	uint16_t writes_starved;
-
-	/* Tunables */
-	uint8_t max_writes_starved;
+	size_t writes_starved;
 };
 
 static void anxiety_merged_requests(struct request_queue *q, struct request *rq, struct request *next)
@@ -31,28 +27,16 @@ static __always_inline struct request *anxiety_choose_request(struct anxiety_dat
 	/* prioritize reads unless writes are exceedingly starved */
 	bool starved = (mdata->writes_starved > MAX_WRITES_STARVED);
 
-	/* sync read */
-	if (!starved && !list_empty(&mdata->queue[SYNC][READ])) {
+	/* read */
+	if (!starved && !list_empty(&mdata->queue[READ])) {
 		mdata->writes_starved++;
-		return rq_entry_fifo(mdata->queue[SYNC][READ].next);
+		return rq_entry_fifo(mdata->queue[READ].next);
 	}
 
-	/* sync write */
-	if (!list_empty(&mdata->queue[SYNC][WRITE])) {
+	/* write */
+	if (!list_empty(&mdata->queue[WRITE])) {
 		mdata->writes_starved = 0;
-		return rq_entry_fifo(mdata->queue[SYNC][WRITE].next);
-	}
-
-	/* async read */
-	if (!starved && !list_empty(&mdata->queue[ASYNC][READ])) {
-		mdata->writes_starved++;
-		return rq_entry_fifo(mdata->queue[ASYNC][READ].next);
-	}
-
-	/* async write */
-	if (!list_empty(&mdata->queue[ASYNC][WRITE])) {
-		mdata->writes_starved = 0;
-		return rq_entry_fifo(mdata->queue[ASYNC][WRITE].next);
+		return rq_entry_fifo(mdata->queue[WRITE].next);
 	}
 
 	/* all queues are empty, i.e. no pending requests */
@@ -75,28 +59,25 @@ static int anxiety_dispatch(struct request_queue *q, int force)
 
 static void anxiety_add_request(struct request_queue *q, struct request *rq)
 {
-	const uint8_t sync = rq_is_sync(rq);
-	const uint8_t read = rq_data_dir(rq);
+	const uint8_t dir = rq_data_dir(rq);
 
-	list_add_tail(&rq->queuelist, &((struct anxiety_data *) q->elevator->elevator_data)->queue[sync][read]);
+	list_add_tail(&rq->queuelist, &((struct anxiety_data *) q->elevator->elevator_data)->queue[dir]);
 }
 
 static struct request *anxiety_former_request(struct request_queue *q, struct request *rq)
 {
-	const uint8_t sync = rq_is_sync(rq);
-	const uint8_t read = rq_data_dir(rq);
+	const uint8_t dir = rq_data_dir(rq);
 
-	if (rq->queuelist.prev == &((struct anxiety_data *) q->elevator->elevator_data)->queue[sync][read])
+	if (rq->queuelist.prev == &((struct anxiety_data *) q->elevator->elevator_data)->queue[dir])
 		return NULL;
 	return list_prev_entry(rq, queuelist);
 }
 
 static struct request *anxiety_latter_request(struct request_queue *q, struct request *rq)
 {
-	const uint8_t sync = rq_is_sync(rq);
-	const uint8_t read = rq_data_dir(rq);
+	const uint8_t dir = rq_data_dir(rq);
 
-	if (rq->queuelist.next == &((struct anxiety_data *) q->elevator->elevator_data)->queue[sync][read])
+	if (rq->queuelist.next == &((struct anxiety_data *) q->elevator->elevator_data)->queue[dir])
 		return NULL;
 	return list_next_entry(rq, queuelist);
 }
@@ -116,14 +97,9 @@ static int anxiety_init_queue(struct request_queue *q, struct elevator_type *e)
 		return -ENOMEM;
 	}
 
-	/* Set the elevator data */
-	eq->elevator_data = adata;
-
-	/* Initialize */
-	INIT_LIST_HEAD(&adata->queue[READ]);
-	INIT_LIST_HEAD(&adata->queue[WRITE]);
-	adata->writes_starved = 0;
-	adata->max_writes_starved = DEFAULT_MAX_WRITES_STARVED;
+	INIT_LIST_HEAD(&nd->queue[READ]);
+	INIT_LIST_HEAD(&nd->queue[WRITE]);
+	nd->writes_starved = 0;
 
 	/* Set elevator to Anxiety */
 	spin_lock_irq(q->queue_lock);
