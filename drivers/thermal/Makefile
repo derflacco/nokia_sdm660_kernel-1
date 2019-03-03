@@ -60,3 +60,5 @@ obj-$(CONFIG_QCOM_THERMAL_LIMITS_DCVS)	+= msm_lmh_dcvs.o
 subdir-ccflags-y += \
 	-Wno-parentheses-equality \
 	-Wno-enum-conversion
+
+obj-$(CONFIG_MSM_THERMAL_SIMPLE) += msm_thermal_simple.o
