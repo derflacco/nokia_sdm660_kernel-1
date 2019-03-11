@@ -8,7 +8,7 @@
  * faster R/W speeds in smaller buffer sizes (ie. databases,
  * journals, raw assets, etc).
  *
- * Copyright (C) 2018-2019 Draco (Tyler Nijmeh) <tylernij@gmail.com>
+ * Copyright (C) 2018-2019 Tyler Nijmeh <tylernij@gmail.com>
  * Copyright (C) 2018 kdrag0n <dragon@khronodragon.com>
  */
 
