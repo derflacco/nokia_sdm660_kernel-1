@@ -296,6 +296,7 @@ static int audio_open(struct inode *inode, struct file *file)
 
 	if (IS_ERR_OR_NULL(audio->dentry))
 		pr_debug("%s: debugfs_create_file failed\n", __func__);
+#endif
 	pr_debug("%s: g711dec success mode[%d]session[%d]\n", __func__,
 						audio->feedback,
 						audio->ac->session);
