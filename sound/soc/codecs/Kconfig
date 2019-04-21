@@ -999,4 +999,7 @@ source "sound/soc/codecs/msm_sdw/Kconfig"
 source "sound/soc/codecs/tas2557/Kconfig"
 source "sound/soc/codecs/tfa9891/Kconfig"
 
+config SOUND_CONTROL
+	bool "Sound Control for msm89xx"
+
 endmenu
