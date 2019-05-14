@@ -34,6 +34,7 @@ LIST_HEAD(cpuidle_detected_devices);
 static int enabled_devices;
 static int off __read_mostly;
 static int initialized __read_mostly;
+static atomic_t idle_cpus = ATOMIC_INIT(0);
 
 static void cpuidle_set_idle_cpu(unsigned int cpu);
 static void cpuidle_clear_idle_cpu(unsigned int cpu);
@@ -213,9 +214,9 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
 	time_start = ktime_get();
 
 	stop_critical_timings();
-	cpuidle_set_idle_cpu(dev->cpu);
+	atomic_or(BIT(dev->cpu), &idle_cpus);
 	entered_state = target_state->enter(dev, drv, index);
-	cpuidle_clear_idle_cpu(dev->cpu);
+	atomic_andnot(BIT(dev->cpu), &idle_cpus);
 	start_critical_timings();
 
 	time_end = ktime_get();
@@ -654,17 +655,16 @@ static void cpuidle_clear_idle_cpu(unsigned int cpu)
 static int cpuidle_latency_notify(struct notifier_block *b,
 		unsigned long l, void *v)
 {
-	static unsigned long prev_latency[NR_CPUS] = {
-		[0 ... NR_CPUS - 1] = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE
-	};
-	struct cpumask update_mask = CPU_MASK_NONE;
-	unsigned int cpu;
+	static unsigned long prev_latency = ULONG_MAX;
 
-	/* Only send an IPI when the CPU latency requirement is tightened */
-	for_each_cpu(cpu, v) {
-		if (l < prev_latency[cpu])
-			cpumask_set_cpu(cpu, &update_mask);
-		prev_latency[cpu] = l;
+	if (l < prev_latency) {
+		const unsigned long cpus = atomic_read(&idle_cpus);
+		struct cpumask *idle_mask = to_cpumask(&cpus);
+
+		cpumask_andnot(idle_mask, idle_mask, cpu_isolated_mask);
+		preempt_disable();
+		smp_call_function_many(idle_mask, smp_callback, NULL, false);
+		preempt_enable();
 	}
 
 	if (!cpumask_empty(&update_mask)) {
@@ -710,6 +710,7 @@ static int __init cpuidle_init(void)
 {
 	int ret;
 
+	BUILD_BUG_ON(NR_CPUS > sizeof(idle_cpus.counter) * BITS_PER_BYTE);
 	if (cpuidle_disabled())
 		return -ENODEV;
 
