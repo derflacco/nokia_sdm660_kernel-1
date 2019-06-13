@@ -19,7 +19,7 @@ KERNEL_DIR=$PWD
 REPACK_DIR=$KERNEL_DIR/zip
 OUT=$KERNEL_DIR/out
 ZIP_NAME="$VERSION"-"$DATE"
-VERSION="platina-testing"
+VERSION="platina-beta3"
 DATE=$(date +%Y%m%d-%H%M)
 
 export KBUILD_BUILD_USER=builder
@@ -31,7 +31,7 @@ export CLANG_PATH=/root/reza/clang2/bin
 export PATH=${CLANG_PATH}:${PATH}
 export CLANG_TRIPLE=aarch64-linux-gnu-
 export CROSS_COMPILE=/root/reza/gcc/bin/aarch64-linux-android-
-#export CROSS_COMPILE_ARM32=/root/reza/gcc2/bin/arm-linux-androideabi-
+export CROSS_COMPILE_ARM32=/root/reza/gcc2/bin/arm-linux-androideabi-
 export CLANG_TCHAIN="/root/reza/clang2/bin/clang"
 export KBUILD_COMPILER_STRING="$(${CLANG_TCHAIN} --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')"
 
@@ -54,7 +54,7 @@ make_zip()
 		rm out/arch/arm64/boot/Image.gz
 }
 
-make platina_defconfig O=out/
+make ancient_defconfig O=out/
 make -j$(nproc --all) O=out/
 make_zip
 
