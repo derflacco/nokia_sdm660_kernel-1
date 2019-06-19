@@ -187,6 +187,7 @@ struct kgsl_pwrctrl {
 	unsigned int thermal_pwrlevel;
 	unsigned int default_pwrlevel;
 	unsigned int wakeup_maxpwrlevel;
+	unsigned int default_pwrlevel;
 	unsigned int max_pwrlevel;
 	unsigned int min_pwrlevel;
 	unsigned int num_pwrlevels;
