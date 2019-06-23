@@ -1764,7 +1764,6 @@ static int zram_remove(struct zram *zram)
 	 */
 	sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
 			&zram_disk_attr_group);
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 
 	/* Make sure all the pending I/O are finished */
 	fsync_bdev(bdev);
