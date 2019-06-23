@@ -19,7 +19,7 @@ KERNEL_DIR=$PWD
 REPACK_DIR=$KERNEL_DIR/zip
 OUT=$KERNEL_DIR/out
 ZIP_NAME="$VERSION"-"$DATE"
-VERSION="Reborn-beta_6"
+VERSION="-Reborn-EAS-1.0.7-"
 DATE=$(date +%Y%m%d-%H%M)
 
 export KBUILD_BUILD_USER=builder
@@ -38,7 +38,7 @@ make_zip()
                 rm $KERNEL_DIR/out/arch/arm64/boot/dts/qcom/modules.order
                 #cp $KERNEL_DIR/out/arch/arm64/boot/dts/qcom/sd* $REPACK_DIR/dtbs/
                 cp $KERNEL_DIR/out/arch/arm64/boot/Image.gz-dtb $REPACK_DIR/
-		FINAL_ZIP="Reborn-${VERSION}-${DATE}.zip"
+		FINAL_ZIP="DFk-${VERSION}-${DATE}.zip"
         zip -r9 "${FINAL_ZIP}" *
 		cp *.zip $OUT
 		rm *.zip
