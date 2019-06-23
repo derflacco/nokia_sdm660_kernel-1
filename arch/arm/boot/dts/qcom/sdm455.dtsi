@@ -18,6 +18,7 @@
 	qcom,msm-id = <385 0x0>;
 	qcom,msm-name = "SDM455";
 };
+<<<<<<< HEAD
 
 &soc {
 	mdss_dp_ctrl: qcom,dp_ctrl@c990000 {
@@ -43,3 +44,5 @@
 		/delete-property/ qcom,mdss-dest-scaler-lut-off;
 	};
 };
+=======
+>>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a

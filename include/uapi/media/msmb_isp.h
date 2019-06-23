@@ -29,10 +29,17 @@
 
 struct msm_vfe_cfg_cmd_list;
 
+<<<<<<< HEAD
 struct isp_kstate {
 	uint32_t kernel_sofid;
 	uint32_t drop_reconfig;
 	uint32_t vfeid;
+=======
+struct isp_proc {
+	uint32_t  kernel_sofid;
+	uint32_t  vfeid;
+	uint32_t  drop_reconfig;
+>>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 };
 
 enum ISP_START_PIXEL_PATTERN {

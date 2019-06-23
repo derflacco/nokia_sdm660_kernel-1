@@ -3520,6 +3520,7 @@ static int msm_isp_request_frame(struct vfe_device *vfe_dev,
 		vfe_dev->axi_data.src_info[frame_src].accept_frame == false) {
 		pr_debug("%s:%d invalid time to request frame %d\n",
 			__func__, __LINE__, frame_id);
+<<<<<<< HEAD
 		vfe_dev->isp_page->drop_reconfig = 1;
 	} else if ((vfe_dev->axi_data.src_info[frame_src].active) &&
 			(frame_id ==
@@ -3532,6 +3533,23 @@ static int msm_isp_request_frame(struct vfe_device *vfe_dev,
 			vfe_dev->axi_data.src_info[VFE_PIX_0].frame_id,
 			vfe_dev->axi_data.src_info[VFE_PIX_0].active);
 	} else if ((vfe_dev->axi_data.src_info[frame_src].active && (frame_id !=
+=======
+		goto error;
+	}
+	if(vfe_dev->axi_data.src_info[frame_src].active && (frame_id ==
+		vfe_dev->axi_data.src_info[frame_src].frame_id) && 
+		(stream_info->undelivered_request_cnt <= MAX_BUFFERS_IN_HW)) {		
+         vfe_dev->isp_page->drop_reconfig =1;
+		 pr_err("%s:%d vfe_%d request_frame %d cur frame id %d pix %d\n",
+			__func__, __LINE__,vfe_dev->pdev->id,frame_id,
+			vfe_dev->axi_data.src_info[frame_src].frame_id,
+			vfe_dev->axi_data.src_info[frame_src].active);
+		 trace_printk("%s:%d vfe%d request_frame %d cur frame id %d pix %d\n",
+			__func__, __LINE__, vfe_dev->pdev->id,frame_id,
+			vfe_dev->axi_data.src_info[frame_src].frame_id,
+			vfe_dev->axi_data.src_info[frame_src].active);
+	 }else if ((vfe_dev->axi_data.src_info[frame_src].active && (frame_id !=
+>>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 		vfe_dev->axi_data.src_info[frame_src].frame_id + vfe_dev->
 		axi_data.src_info[frame_src].sof_counter_step)) ||
 		((!vfe_dev->axi_data.src_info[frame_src].active))) {

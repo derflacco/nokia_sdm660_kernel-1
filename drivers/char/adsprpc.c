@@ -317,7 +317,10 @@ struct fastrpc_file {
 	struct fastrpc_perf perf;
 	struct dentry *debugfs_file;
 	struct mutex map_mutex;
+<<<<<<< HEAD
 	char *debug_buf;
+=======
+>>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 };
 
 static struct fastrpc_apps gfa;
@@ -2668,6 +2671,7 @@ static ssize_t fastrpc_debugfs_read(struct file *filp, char __user *buffer,
 			len += scnprintf(fileinfo + len,
 				 DEBUGFS_SIZE - len, "%-8s", chan->subsys);
 			len += scnprintf(fileinfo + len,
+<<<<<<< HEAD
 				 DEBUGFS_SIZE - len, "|%-9d",
 				 chan->kref.refcount.counter);
 			len += scnprintf(fileinfo + len,
@@ -2679,6 +2683,10 @@ static ssize_t fastrpc_debugfs_read(struct file *filp, char __user *buffer,
 			len += scnprintf(fileinfo + len,
 				 DEBUGFS_SIZE - len, "|%-9d",
 				 chan->ssrcount);
+=======
+					DEBUGFS_SIZE - len, "%s %d\n",
+					"sesscount:", chan->sesscount);
+>>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 			for (j = 0; j < chan->sesscount; j++) {
 				sess_used += chan->session[j].used;
 				}
@@ -2734,6 +2742,7 @@ static ssize_t fastrpc_debugfs_read(struct file *filp, char __user *buffer,
 		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
 			"%s %8s %d\n", "ssrcount", ":", fl->ssrcount);
 		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
+<<<<<<< HEAD
 			"%s %14s %d\n", "pd", ":", fl->pd);
 		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
 			"%s %6s %d\n", "file_close", ":", fl->file_close);
@@ -2772,6 +2781,16 @@ static ssize_t fastrpc_debugfs_read(struct file *filp, char __user *buffer,
 			"0x%-20lX|0x%-20llX|0x%-20zu\n\n",
 			map->va, map->phys,
 			map->size);
+=======
+				"%s\n",
+				"LIST OF BUFS:");
+		spin_lock(&fl->hlock);
+		hlist_for_each_entry_safe(buf, n, &fl->bufs, hn) {
+			len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
+					"%s %pK %s %pK %s %llx\n", "buf:",
+					buf, "buf->virt:", buf->virt,
+					"buf->phys:", buf->phys);
+>>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 		}
 		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
 			"%-20s|%-20s|%-20s|%-20s\n",
@@ -2941,8 +2960,11 @@ static int fastrpc_device_open(struct inode *inode, struct file *filp)
 	struct dentry *debugfs_file;
 	struct fastrpc_file *fl = NULL;
 	struct fastrpc_apps *me = &gfa;
+<<<<<<< HEAD
 	char strpid[PID_SIZE];
 	int buf_size = 0;
+=======
+>>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 
 	VERIFY(err, NULL != (fl = kzalloc(sizeof(*fl), GFP_KERNEL)));
 	if (err)
@@ -2965,8 +2987,11 @@ static int fastrpc_device_open(struct inode *inode, struct file *filp)
 	fl->apps = me;
 	fl->mode = FASTRPC_MODE_SERIAL;
 	fl->cid = -1;
+<<<<<<< HEAD
 	fl->init_mem = NULL;
 
+=======
+>>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 	if (debugfs_file != NULL)
 		fl->debugfs_file = debugfs_file;
 	memset(&fl->perf, 0, sizeof(fl->perf));
