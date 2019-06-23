@@ -3549,7 +3549,6 @@ static int msm_isp_request_frame(struct vfe_device *vfe_dev,
 			vfe_dev->axi_data.src_info[frame_src].frame_id,
 			vfe_dev->axi_data.src_info[frame_src].active);
 	 }else if ((vfe_dev->axi_data.src_info[frame_src].active && (frame_id !=
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 		vfe_dev->axi_data.src_info[frame_src].frame_id + vfe_dev->
 		axi_data.src_info[frame_src].sof_counter_step)) ||
 		((!vfe_dev->axi_data.src_info[frame_src].active))) {

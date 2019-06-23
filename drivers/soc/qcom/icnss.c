@@ -301,10 +301,7 @@ enum icnss_driver_state {
 	ICNSS_FW_DOWN,
 	ICNSS_DRIVER_UNLOADING,
 	ICNSS_REJUVENATE,
-<<<<<<< HEAD
 	ICNSS_BLOCK_SHUTDOWN,
-=======
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 };
 
 struct ce_irq_list {

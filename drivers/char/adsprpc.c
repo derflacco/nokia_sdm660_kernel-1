@@ -317,10 +317,6 @@ struct fastrpc_file {
 	struct fastrpc_perf perf;
 	struct dentry *debugfs_file;
 	struct mutex map_mutex;
-<<<<<<< HEAD
-	char *debug_buf;
-=======
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 };
 
 static struct fastrpc_apps gfa;
@@ -2671,19 +2667,6 @@ static ssize_t fastrpc_debugfs_read(struct file *filp, char __user *buffer,
 			len += scnprintf(fileinfo + len,
 				 DEBUGFS_SIZE - len, "%-8s", chan->subsys);
 			len += scnprintf(fileinfo + len,
-<<<<<<< HEAD
-				 DEBUGFS_SIZE - len, "|%-9d",
-				 chan->kref.refcount.counter);
-			len += scnprintf(fileinfo + len,
-				 DEBUGFS_SIZE - len, "|%-9d",
-				 chan->sesscount);
-			len += scnprintf(fileinfo + len,
-				 DEBUGFS_SIZE - len, "|%-14d",
-				 chan->issubsystemup);
-			len += scnprintf(fileinfo + len,
-				 DEBUGFS_SIZE - len, "|%-9d",
-				 chan->ssrcount);
-=======
 					DEBUGFS_SIZE - len, "%s %d\n",
 					"sesscount:", chan->sesscount);
 >>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
@@ -2742,46 +2725,6 @@ static ssize_t fastrpc_debugfs_read(struct file *filp, char __user *buffer,
 		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
 			"%s %8s %d\n", "ssrcount", ":", fl->ssrcount);
 		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-<<<<<<< HEAD
-			"%s %14s %d\n", "pd", ":", fl->pd);
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%s %6s %d\n", "file_close", ":", fl->file_close);
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%s %9s %d\n", "profile", ":", fl->profile);
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%s %3s %d\n", "smmu.coherent", ":",
-			fl->sctx->smmu.coherent);
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%s %4s %d\n", "smmu.enabled", ":",
-			fl->sctx->smmu.enabled);
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%s %9s %d\n", "smmu.cb", ":", fl->sctx->smmu.cb);
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%s %5s %d\n", "smmu.secure", ":",
-			fl->sctx->smmu.secure);
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%s %5s %d\n", "smmu.faults", ":",
-			fl->sctx->smmu.faults);
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%s %s %d\n", "link.link_state",
-		 ":", *&me->channel[fl->cid].link.link_state);
-
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"\n=======%s %s %s======\n", title,
-			" LIST OF MAPS ", title);
-
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%-20s|%-20s|%-20s\n", "va", "phys", "size");
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"%s%s%s%s%s\n",
-			single_line, single_line, single_line,
-			single_line, single_line);
-		hlist_for_each_entry_safe(map, n, &fl->maps, hn) {
-		len += scnprintf(fileinfo + len, DEBUGFS_SIZE - len,
-			"0x%-20lX|0x%-20llX|0x%-20zu\n\n",
-			map->va, map->phys,
-			map->size);
-=======
 				"%s\n",
 				"LIST OF BUFS:");
 		spin_lock(&fl->hlock);
@@ -2987,11 +2930,6 @@ static int fastrpc_device_open(struct inode *inode, struct file *filp)
 	fl->apps = me;
 	fl->mode = FASTRPC_MODE_SERIAL;
 	fl->cid = -1;
-<<<<<<< HEAD
-	fl->init_mem = NULL;
-
-=======
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 	if (debugfs_file != NULL)
 		fl->debugfs_file = debugfs_file;
 	memset(&fl->perf, 0, sizeof(fl->perf));

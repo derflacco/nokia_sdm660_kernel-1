@@ -188,27 +188,6 @@ dtb-$(CONFIG_FIH_SDM630_SDM660_PROJS) += sdm660-mtp.dtb \
 	sdm630-mtp.dtb \
 	sdm660-qrd.dtb \
 	sdm630-pm660a-qrd.dtb \
-<<<<<<< HEAD
-	sdm630-internal-codec-pm660a-cdp.dtb \
-	sdm630-internal-codec-pm660a-mtp.dtb \
-	sdm630-internal-codec-pm660a-rcm.dtb \
-	sda630-mtp.dtb \
-	sda630-cdp.dtb \
-	sda630-rcm.dtb \
-	sda630-pm660a-mtp.dtb \
-	sda630-pm660a-cdp.dtb \
-	sda630-pm660a-rcm.dtb \
-	sda630-pm660a-qrd-hdk.dtb \
-	sdm630-headset-jacktype-no-cdp.dtb \
-	sdm630-headset-jacktype-no-rcm.dtb \
-	sdm630-pm660a-headset-jacktype-no-cdp.dtb \
-	sdm630-pm660a-headset-jacktype-no-rcm.dtb \
-	sdm455-mtp.dtb \
-	sdm455-qrd.dtb \
-	sdm455-cdp.dtb \
-	sdm455-rcm.dtb \
-	sdm455-internal-codec-rcm.dtb
-=======
 	sdm660-cdp-c1n-preEVT.dtb \
 	sdm660-cdp-c1n-EVT.dtb \
 	sdm660-mtp-c1n-preEVT.dtb \
@@ -350,7 +329,6 @@ dtb-$(CONFIG_FIH_SDM630_SDM660_PROJS) += sdm660-mtp.dtb \
 #	sdm455-mtp.dtb \
 #	sdm455-qrd.dtb \
 #	sdm455-cdp.dtb
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 
 ifeq ($(CONFIG_ARM64),y)
 always          := $(dtb-y)

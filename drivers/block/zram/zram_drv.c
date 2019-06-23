@@ -277,7 +277,6 @@ static ssize_t mem_used_max_store(struct device *dev,
 	up_read(&zram->init_lock);
 
 	return len;
-<<<<<<< HEAD
 }
 
 #ifdef CONFIG_ZRAM_WRITEBACK
@@ -307,37 +306,6 @@ static void reset_bdev(struct zram *zram)
 	zram->bitmap = NULL;
 }
 
-=======
-}
-
-#ifdef CONFIG_ZRAM_WRITEBACK
-static bool zram_wb_enabled(struct zram *zram)
-{
-	return zram->backing_dev;
-}
-
-static void reset_bdev(struct zram *zram)
-{
-	struct block_device *bdev;
-
-	if (!zram_wb_enabled(zram))
-		return;
-
-	bdev = zram->bdev;
-	if (zram->old_block_size)
-		set_blocksize(bdev, zram->old_block_size);
-	blkdev_put(bdev, FMODE_READ|FMODE_WRITE|FMODE_EXCL);
-	/* hope filp_close flush all of IO */
-	filp_close(zram->backing_dev, NULL);
-	zram->backing_dev = NULL;
-	zram->old_block_size = 0;
-	zram->bdev = NULL;
-
-	kvfree(zram->bitmap);
-	zram->bitmap = NULL;
-}
-
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 static ssize_t backing_dev_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -556,7 +524,6 @@ static void zram_sync_read(struct work_struct *work)
 
 	read_from_bdev_async(zram, &bvec, entry, bio);
 }
-<<<<<<< HEAD
 
 /*
  * Block layer want one ->make_request_fn to be active at a time
@@ -568,19 +535,6 @@ static int read_from_bdev_sync(struct zram *zram, struct bio_vec *bvec,
 {
 	struct zram_work work;
 
-=======
-
-/*
- * Block layer want one ->make_request_fn to be active at a time
- * so if we use chained IO with parent IO in same context,
- * it's a deadlock. To avoid, it, it uses worker thread context.
- */
-static int read_from_bdev_sync(struct zram *zram, struct bio_vec *bvec,
-				unsigned long entry, struct bio *bio)
-{
-	struct zram_work work;
-
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 	work.zram = zram;
 	work.entry = entry;
 	work.bio = bio;
@@ -999,7 +953,6 @@ static void zram_free_page(struct zram *zram, size_t index)
 	if (zram_wb_enabled(zram) && zram_test_flag(zram, index, ZRAM_WB)) {
 		zram_wb_clear(zram, index);
 		atomic64_dec(&zram->stats.pages_stored);
-<<<<<<< HEAD
 		return;
 	}
 
@@ -1015,23 +968,6 @@ static void zram_free_page(struct zram *zram, size_t index)
 		return;
 	}
 
-=======
-		return;
-	}
-
-	/*
-	 * No memory is allocated for same element filled pages.
-	 * Simply clear same page flag.
-	 */
-	if (zram_test_flag(zram, index, ZRAM_SAME)) {
-		zram_clear_flag(zram, index, ZRAM_SAME);
-		zram_set_element(zram, index, 0);
-		atomic64_dec(&zram->stats.same_pages);
-		atomic64_dec(&zram->stats.pages_stored);
-		return;
-	}
-
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 	handle = zram_get_handle(zram, index);
 	if (!handle)
 		return;
@@ -1783,10 +1719,6 @@ static int zram_add(void)
 
 	zram->disk->queue->backing_dev_info->capabilities |=
 					BDI_CAP_STABLE_WRITES;
-<<<<<<< HEAD
-	disk_to_dev(zram->disk)->groups = zram_disk_attr_groups;
-=======
->>>>>>> e5340ec73f7db9a5741d7c360f87140bd58bb61a
 	add_disk(zram->disk);
 
 	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
@@ -1823,8 +1755,6 @@ static int zram_remove(struct zram *zram)
 	mutex_unlock(&bdev->bd_mutex);
 
 	zram_debugfs_unregister(zram);
-<<<<<<< HEAD
-=======
 	/*
 	 * Remove sysfs first, so no one will perform a disksize
 	 * store while we destroy the devices. This also helps during
