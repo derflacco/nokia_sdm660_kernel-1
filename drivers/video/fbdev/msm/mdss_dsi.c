@@ -4162,6 +4162,158 @@ EXPORT_SYMBOL(SendAIEOnlyAfterResume);
 //SW4-HL-Display-ImplementCECTCABC-00+}_20160126
 extern void fts_tp_lcm_suspend(void);//ZZDC-snow-Touch-_20170809
 extern void hlt_tp_lcm_suspend(void);//add by snow
+static struct mdss_dsi_ctrl_pdata *mdss_dsi_get_drvdata(struct device *dev)
+{
+	struct msm_fb_data_type *mfd;
+	struct mdss_panel_data *pdata;
+	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
+	struct fb_info *fbi = dev_get_drvdata(dev);
+
+	if (fbi) {
+		mfd = (struct msm_fb_data_type *)fbi->par;
+		pdata = dev_get_platdata(&mfd->pdev->dev);
+
+		ctrl_pdata = container_of(pdata,
+			struct mdss_dsi_ctrl_pdata, panel_data);
+	}
+
+	return ctrl_pdata;
+}
+
+static ssize_t supp_bitclk_list_sysfs_rda(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	ssize_t ret = 0;
+	int i = 0;
+	struct mdss_dsi_ctrl_pdata *ctrl_pdata = mdss_dsi_get_drvdata(dev);
+	struct mdss_panel_info *pinfo = NULL;
+
+	if (!ctrl_pdata) {
+		pr_err("%s: invalid input\n", __func__);
+		return -EINVAL;
+	}
+
+	pinfo = &ctrl_pdata->panel_data.panel_info;
+	if (!pinfo) {
+		pr_err("no panel connected\n");
+		return -ENODEV;
+	}
+
+	if (!pinfo->dynamic_bitclk) {
+		pr_err_once("%s: Dynamic bitclk not enabled for this panel\n",
+				__func__);
+		return -EINVAL;
+	}
+
+	buf[0] = 0;
+	for (i = 0; i < pinfo->supp_bitclk_len; i++) {
+		if (ret > 0)
+			ret += scnprintf(buf + ret, PAGE_SIZE - ret,
+				",%d", pinfo->supp_bitclks[i]);
+		else
+			ret += scnprintf(buf + ret, PAGE_SIZE - ret,
+				"%d", pinfo->supp_bitclks[i]);
+	}
+
+	ret += scnprintf(buf + ret, PAGE_SIZE - ret, "\n");
+
+	return ret;
+}
+
+static ssize_t dynamic_bitclk_sysfs_wta(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	int rc = 0, i = 0;
+	struct mdss_dsi_ctrl_pdata *ctrl_pdata = mdss_dsi_get_drvdata(dev);
+	struct mdss_panel_info *pinfo = NULL;
+	int clk_rate = 0;
+
+	if (!ctrl_pdata) {
+		pr_err("%s: invalid input\n", __func__);
+		return -EINVAL;
+	}
+
+	pinfo = &ctrl_pdata->panel_data.panel_info;
+	if (!pinfo) {
+		pr_err("no panel connected\n");
+		return -ENODEV;
+	}
+
+	if (!pinfo->dynamic_bitclk) {
+		pr_err_once("%s: Dynamic bitclk not enabled for this panel\n",
+				__func__);
+		return -EINVAL;
+	}
+
+	if (mdss_panel_is_power_off(pinfo->panel_power_state)) {
+		pr_err_once("%s: Panel powered off!\n", __func__);
+		return -EINVAL;
+	}
+
+	rc = kstrtoint(buf, 10, &clk_rate);
+	if (rc) {
+		pr_err("%s: kstrtoint failed. rc=%d\n", __func__, rc);
+		return rc;
+	}
+
+	for (i = 0; i < pinfo->supp_bitclk_len; i++) {
+		if (pinfo->supp_bitclks[i] == clk_rate)
+			break;
+	}
+	if (i == pinfo->supp_bitclk_len) {
+		pr_err("Requested bitclk: %d not supported\n", clk_rate);
+		return -EINVAL;
+	}
+
+	pinfo->new_clk_rate = clk_rate;
+	if (mdss_dsi_is_hw_config_split(ctrl_pdata->shared_data)) {
+		struct mdss_dsi_ctrl_pdata *octrl =
+			mdss_dsi_get_other_ctrl(ctrl_pdata);
+		struct mdss_panel_info *opinfo = &octrl->panel_data.panel_info;
+
+		opinfo->new_clk_rate = clk_rate;
+	}
+	return count;
+} /* dynamic_bitclk_sysfs_wta */
+
+static ssize_t dynamic_bitclk_sysfs_rda(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	ssize_t ret;
+	struct mdss_dsi_ctrl_pdata *ctrl_pdata = mdss_dsi_get_drvdata(dev);
+	struct mdss_panel_info *pinfo = NULL;
+
+	if (!ctrl_pdata) {
+		pr_err("%s: invalid input\n", __func__);
+		return -EINVAL;
+	}
+
+	pinfo = &ctrl_pdata->panel_data.panel_info;
+	if (!pinfo) {
+		pr_err("no panel connected\n");
+		return -ENODEV;
+	}
+
+	ret = snprintf(buf, PAGE_SIZE, "%llu\n", pinfo->clk_rate);
+	pr_debug("%s: '%llu'\n", __func__, pinfo->clk_rate);
+
+	return ret;
+} /* dynamic_bitclk_sysfs_rda */
+
+static DEVICE_ATTR(dynamic_bitclk, S_IRUGO | S_IWUSR | S_IWGRP,
+	dynamic_bitclk_sysfs_rda, dynamic_bitclk_sysfs_wta);
+static DEVICE_ATTR(supported_bitclk, S_IRUGO, supp_bitclk_list_sysfs_rda, NULL);
+
+static struct attribute *dynamic_bitclk_fs_attrs[] = {
+	&dev_attr_dynamic_bitclk.attr,
+	&dev_attr_supported_bitclk.attr,
+	NULL,
+};
+
+static struct attribute_group mdss_dsi_fs_attrs_group = {
+	.attrs = dynamic_bitclk_fs_attrs,
+};
+
 static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 				  int event, void *arg)
 {
