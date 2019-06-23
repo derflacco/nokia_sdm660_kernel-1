@@ -582,24 +582,6 @@ static int sdcardfs_permission(struct vfsmount *mnt, struct inode *inode, int ma
 		pr_warn("%s: This may be undefined behavior...\n", __func__);
 
 	err = generic_permission(&tmp, mask);
-	/* XXX
-	 * Original sdcardfs code calls inode_permission(lower_inode,.. )
-	 * for checking inode permission. But doing such things here seems
-	 * duplicated work, because the functions called after this func,
-	 * such as vfs_create, vfs_unlink, vfs_rename, and etc,
-	 * does exactly same thing, i.e., they calls inode_permission().
-	 * So we just let they do the things.
-	 * If there are any security hole, just uncomment following if block.
-	 */
-#if 0
-	if (!err) {
-		/*
-		 * Permission check on lower_inode(=EXT4).
-		 * we check it with AID_MEDIA_RW permission
-		 */
-		struct inode *lower_inode;
-
-	err = generic_permission(&tmp, mask);
 	return err;
 }
 
