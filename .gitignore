@@ -117,3 +117,5 @@ ccache_drg/
 out/	
 build.sh	
 logcat.txt
+
+out/
