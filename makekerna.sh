@@ -19,16 +19,16 @@ KERNEL_DIR=$PWD
 REPACK_DIR=$KERNEL_DIR/zip
 OUT=$KERNEL_DIR/out
 ZIP_NAME="$VERSION"-"$DATE"
-VERSION="-Reborn-EAS-1.0.7-"
+VERSION="-Arcturus-nysadev"
 DATE=$(date +%Y%m%d-%H%M)
 
-export KBUILD_BUILD_USER=builder
-export KBUILD_BUILD_HOST=FlaccoMachine
+export KBUILD_BUILD_USER=nysadev
+export KBUILD_BUILD_HOST=Arcturus
 export ARCH=arm64
 export SUBARCH=arm64
 export USE_CCACHE=1
-export CROSS_COMPILE=/home/derflacco/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-make clean
+export CROSS_COMPILE=/home/nysadev/aarch64-elf-gcc/bin/aarch64-elf-
+export CROSS_COMPILE_ARM32=/home/nysadev/arm-eabi-gcc/bin/arm-eabi-
 make_zip()
 {
                 cd $REPACK_DIR
@@ -59,7 +59,7 @@ rm -rf zip/Image.gz-dtb
 rm -rf zip/dtbs
 echo -e ""
 echo -e ""
-echo -e "DFK KERNEL"
+echo -e "oioi lads"
 echo -e ""
 echo -e ""
 echo -e "Build completed in $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds."
