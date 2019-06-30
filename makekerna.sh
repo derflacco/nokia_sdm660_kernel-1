@@ -38,7 +38,7 @@ make_zip()
                 rm $KERNEL_DIR/out/arch/arm64/boot/dts/qcom/modules.order
                 #cp $KERNEL_DIR/out/arch/arm64/boot/dts/qcom/sd* $REPACK_DIR/dtbs/
                 cp $KERNEL_DIR/out/arch/arm64/boot/Image.gz-dtb $REPACK_DIR/
-		FINAL_ZIP="DFk-${VERSION}-${DATE}.zip"
+		FINAL_ZIP="${VERSION}-${DATE}.zip"
         zip -r9 "${FINAL_ZIP}" *
 		cp *.zip $OUT
 		rm *.zip
